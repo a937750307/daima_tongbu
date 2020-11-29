@@ -1,0 +1,47 @@
+创建新仓库：填入Repository name后点击最下方的Create repository即可完成创建
+
+自己创造工作流：在创建完成页面点击Actions再点击set up a workflow yourself
+
+复制代码：
+---------------以下正文----------------
+name: sync-sazs34-scripts
+on:
+  schedule:
+    - cron: '5 0,15 * * *'
+  workflow_dispatch:
+  watch:
+    types: started
+  repository_dispatch:
+    types: sync-sazs34-scripts
+jobs:
+  repo-sync:
+    env:
+      PAT: ${{ secrets.PAT }} #此处PAT需要申请，教程详见：https://www.jianshu.com/p/bb82b3ad1d11
+    runs-on: ubuntu-latest
+    if: github.event.repository.owner.id == github.event.sender.id
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+
+      - name: sync sazs34-scripts
+        uses: repo-sync/github-sync@v2
+        if: env.PAT
+        with:
+          source_repo: "https://github.com/sazs34/MyActions.git"
+          source_branch: "master"
+          destination_branch: "main"
+          github_token: ${{ secrets.PAT }}
+---------------以上正文----------------
+
+复制完成后直接点击右上角的Start commit后Commit new file直接即可
+
+申请PAT：点击GitHub用户设置页面最下方的Developer setting，然后选择Personal access tokens（点击快捷到达指定页面）来生成一个令牌，把repo和workflow两部分勾上即可。复制下来马上就要使用了
+
+填写PAT到秘密：申请完毕后，在分支中点击Settings- Secrets-New secret
+
+name填PAT，Value填入以上申请到的PAT，保存即可
+
+手动触发一次代码同步：点击Actions，找到指定的脚本，运行一次。
+
+等待两分钟左右，能够发现代码全部同步过来了
